@@ -1,0 +1,106 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Afk {
+  id         Int      @id @default(autoincrement())
+  memberId   String
+  guildId    String
+  afkMessage String
+  afkNick    String
+  createdAt  DateTime @default(now())
+
+  @@unique([memberId, guildId])
+}
+
+model Ban {
+  id        Int       @id @default(autoincrement())
+  memberId  String
+  createdAt DateTime  @default(now())
+  expiresAt DateTime?
+  modlogId  Int
+  Modlog    Modlog    @relation(fields: [modlogId], references: [id])
+}
+
+model Command {
+  id       Int      @id @default(autoincrement())
+  name     String
+  authorId String
+  usedAt   DateTime @default(now())
+}
+
+model Guild {
+  guildId       String  @id @unique
+  sub           String?
+  prefix        String  @default(">")
+  channelModlog String  @default("0")
+  roleAdmin     String  @default("0")
+  roleModerator String  @default("0")
+  roleMuted     String  @default("0")
+  roleStaff     String  @default("0")
+  roleTrainee   String  @default("0")
+}
+
+model Message {
+  id        Int      @id @default(autoincrement())
+  messageId String
+  memberId  String
+  channelId String
+  guildId   String
+  length    Int
+  createdAt DateTime @default(now())
+}
+
+model Modlog {
+  id         Int       @id @default(autoincrement())
+  staffId    String
+  staffName  String
+  memberId   String
+  memberName String
+  reason     String?   @default("No reason")
+  type       String
+  length     String?
+  createdAt  DateTime  @default(now())
+  guildId    String
+  Ban        Ban[]
+  Modnick    Modnick[]
+  Mute       Mute[]
+  Warn       Warn[]
+}
+
+model Modnick {
+  id                Int      @id @default(autoincrement())
+  memberId          String   @unique
+  originalNickname  String
+  moderatedNickname String
+  frozen            Boolean  @default(false)
+  modlogId          Int
+  createdAt         DateTime @default(now())
+  guildId           String
+  Modlog            Modlog   @relation(fields: [modlogId], references: [id])
+
+  @@unique([memberId, guildId])
+}
+
+model Mute {
+  id        Int       @id @default(autoincrement())
+  memberId  String
+  createdAt DateTime  @default(now())
+  modlogId  Int
+  expiresAt DateTime?
+  Modlog    Modlog    @relation(fields: [modlogId], references: [id])
+}
+
+model Warn {
+  id        Int      @id @default(autoincrement())
+  memberId  String
+  warnUid   String   @unique
+  modlogId  Int
+  createdAt DateTime @default(now())
+  Modlog    Modlog   @relation(fields: [modlogId], references: [id])
+}
